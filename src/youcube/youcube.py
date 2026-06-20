@@ -61,9 +61,11 @@ Also, it should not be too small because then the client
 would need to send thousands of WS messages
 and that would also slow everything down! [CHUNK_SIZE * 1]
 """
-CHUNKS_AT_ONCE = CHUNK_SIZE * 256
+# 1 second of DFPWM audio at 48000 Hz is 48000 bits = 6000 bytes
+CHUNKS_AT_ONCE = 6000
 
 
+# 1 second of video is 10 frames
 FRAMES_AT_ONCE = 10
 
 # pylint settings

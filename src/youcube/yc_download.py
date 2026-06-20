@@ -260,6 +260,41 @@ def download(
 
             yt_dl.process_ie_result(data, download=True)
 
+            # Preprocess downloaded video to force Constant Framerate (CFR) at 10 FPS
+            # This prevents variable framerate (VFR) drift between video and audio
+            from os import remove, rename
+            from os.path import exists
+            files = listdir(temp_dir)
+            if files:
+                input_file = join(temp_dir, files[0])
+                temp_cfr = join(temp_dir, "cfr_" + files[0])
+                
+                run_coroutine_threadsafe(
+                    resp.send(
+                        dumps({"action": "status", "message": "Transcoding to Constant Framerate (10 FPS) ..."})
+                    ),
+                    loop,
+                )
+                
+                logger.info("Transcoding %s to Constant Framerate (CFR) at 10 FPS...", files[0])
+                
+                cfr_cmd = [
+                    FFMPEG_PATH,
+                    "-y",
+                    "-i", input_file,
+                    "-vsync", "cfr",
+                    "-r", "10",
+                    temp_cfr
+                ]
+                
+                returncode = run_with_live_output(cfr_cmd, lambda line: None)
+                if returncode == 0 and exists(temp_cfr):
+                    remove(input_file)
+                    rename(temp_cfr, input_file)
+                    logger.info("Successfully transcoded video to CFR.")
+                else:
+                    logger.warning("FFmpeg CFR transcoding failed or returned exit code %s", returncode)
+
         # TODO: Thread audio & video download
 
         if not audio_downloaded:
