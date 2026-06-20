@@ -180,6 +180,7 @@ def download(
     # FIXME: Cleanup on Exception
     with TemporaryDirectory(prefix="youcube-") as temp_dir:
         yt_dl_options = {
+            "extractor_args": {"youtube": {"player_client": ["default", "mweb"]}},
             "format": "worst[ext=mp4]/worst" if is_video else "worstaudio/worst",
             "outtmpl": join(temp_dir, "%(id)s.%(ext)s"),
             "default_search": "auto",
